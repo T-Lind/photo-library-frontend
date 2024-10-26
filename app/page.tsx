@@ -12,6 +12,9 @@ import { Check, ChevronsUpDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import api, { SearchParams, Person, Image, SearchResults } from '@/lib/api'
 import FullImageView from '@/components/full-image-view'
+import { DateRange } from "react-day-picker"
+import { Switch } from "@/components/ui/switch"
+import { Label } from "@/components/ui/label"
 
 export default function PhotoManagementSystem() {
     const [searchParams, setSearchParams] = useState<SearchParams>({
@@ -19,19 +22,25 @@ export default function PhotoManagementSystem() {
         page: 1,
         per_page: 20
     })
+    const [dateRange, setDateRange] = useState<DateRange | undefined>()
     const [people, setPeople] = useState<Person[]>([])
     const [selectedPeople, setSelectedPeople] = useState<Person[]>([])
     const [searchResults, setSearchResults] = useState<SearchResults | null>(null)
     const [open, setOpen] = useState(false)
     const [selectedImage, setSelectedImage] = useState<Image | null>(null)
+    const [sortByDate, setSortByDate] = useState(false)
 
     useEffect(() => {
         api.getPeople().then(setPeople)
     }, [])
 
     const handleSearch = async (page = 1) => {
+        console.log("Searching with params", searchParams)
+        console.log("Date range", dateRange?.from?.toISOString(), dateRange?.to?.toISOString())
         const results = await api.search({
             ...searchParams,
+            start_date: dateRange?.from?.toISOString(),
+            end_date: dateRange?.to?.toISOString(),
             people_ids: selectedPeople.map(p => p.people_id),
             page,
             per_page: 20
@@ -43,6 +52,13 @@ export default function PhotoManagementSystem() {
         setSearchParams(prev => ({ ...prev, page: newPage }))
         handleSearch(newPage)
     }
+
+    const sortedResults = sortByDate && searchResults
+        ? {
+            ...searchResults,
+            results: [...searchResults.results].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        }
+        : searchResults
 
     return (
         <div className="min-h-screen bg-orange-50 font-sans">
@@ -56,7 +72,7 @@ export default function PhotoManagementSystem() {
                         className="bg-white"
                     />
                     <div className="flex space-x-4">
-                        <DateRangePicker className="w-[300px]" />
+                        <DateRangePicker dateRange={dateRange} setDateRange={setDateRange} className="w-[300px]" />
                         <Popover open={open} onOpenChange={setOpen}>
                             <PopoverTrigger asChild>
                                 <Button
@@ -85,7 +101,6 @@ export default function PhotoManagementSystem() {
                                                             ? prev.filter(p => p.people_id !== person.people_id)
                                                             : [...prev, person]
                                                     )
-                                                    setOpen(false)
                                                 }}
                                             >
                                                 <Check
@@ -103,12 +118,16 @@ export default function PhotoManagementSystem() {
                         </Popover>
                         <Button onClick={() => handleSearch()} className="bg-orange-600 hover:bg-orange-700 text-white">Search</Button>
                     </div>
+                    <div className="flex items-center space-x-2">
+                        <Switch id="sort-by-date" checked={sortByDate} onCheckedChange={setSortByDate} />
+                        <Label htmlFor="sort-by-date">Sort by date (newest first)</Label>
+                    </div>
                 </div>
-                {searchResults && (
+                {sortedResults && (
                     <div className="mt-8">
                         <h2 className="text-2xl font-semibold mb-4 text-orange-800">Search Results</h2>
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                            {searchResults.results.map((image: Image) => (
+                            {sortedResults.results.map((image: Image) => (
                                 <Card key={image.image_id} className="overflow-hidden cursor-pointer" onClick={() => setSelectedImage(image)}>
                                     <CardContent className="p-0">
                                         <img
@@ -137,15 +156,15 @@ export default function PhotoManagementSystem() {
                         </div>
                         <div className="mt-4 flex justify-center space-x-2">
                             <Button
-                                onClick={() => handlePageChange(searchResults.page - 1)}
-                                disabled={searchResults.page === 1}
+                                onClick={() => handlePageChange(sortedResults.page - 1)}
+                                disabled={sortedResults.page === 1}
                             >
                                 Previous
                             </Button>
-                            <span className="py-2">Page {searchResults.page} of {Math.ceil(searchResults.total / searchResults.per_page)}</span>
+                            <span className="py-2">Page {sortedResults.page} of {Math.ceil(sortedResults.total / sortedResults.per_page)}</span>
                             <Button
-                                onClick={() => handlePageChange(searchResults.page + 1)}
-                                disabled={searchResults.page * searchResults.per_page >= searchResults.total}
+                                onClick={() => handlePageChange(sortedResults.page + 1)}
+                                disabled={sortedResults.page * sortedResults.per_page >= sortedResults.total}
                             >
                                 Next
                             </Button>
@@ -157,6 +176,7 @@ export default function PhotoManagementSystem() {
                 <FullImageView
                     image={selectedImage}
                     onClose={() => setSelectedImage(null)}
+                    showDate={true}
                 />
             )}
         </div>

@@ -5,9 +5,10 @@ import api, { Image } from '@/lib/api'
 interface FullImageViewProps {
     image: Image
     onClose: () => void
+    showDate: boolean
 }
 
-export default function FullImageView({ image, onClose }: FullImageViewProps) {
+export default function FullImageView({ image, onClose, showDate }: FullImageViewProps) {
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white p-4 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto">
@@ -23,7 +24,9 @@ export default function FullImageView({ image, onClose }: FullImageViewProps) {
                     className="w-full h-auto"
                 />
                 <div className="mt-4">
-                    <p className="text-sm text-gray-500">Date: {new Date(image.date).toLocaleDateString()}</p>
+                    {showDate && (
+                        <p className="text-sm text-gray-500">Date: {new Date(image.date).toLocaleDateString()}</p>
+                    )}
                     <p className="text-sm text-gray-500">Location: {image.location}</p>
                 </div>
             </div>

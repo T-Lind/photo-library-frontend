@@ -26,6 +26,15 @@ export interface Image {
     thumbnail_url: string;
 }
 
+export interface SearchParams {
+    query?: string;
+    start_date?: string;
+    end_date?: string;
+    people_ids?: number[];
+    page?: number;
+    per_page?: number;
+}
+
 export interface SearchResults {
     total: number;
     page: number;
@@ -58,7 +67,7 @@ const api = {
     },
 
     updatePerson: async (peopleId: number, name: string): Promise<Person> => {
-        const response = await axios.patch(`${API_BASE_URL}/people/${peopleId}`, { name });
+        const response = await axios.patch(`${API_BASE_URL}/people/${peopleId}`, {name});
         return response.data;
     },
 
@@ -67,7 +76,7 @@ const api = {
     },
 
     mergePeople: async (sourceId: number, targetId: number): Promise<Person> => {
-        const response = await axios.post(`${API_BASE_URL}/people/merge`, { source_id: sourceId, target_id: targetId });
+        const response = await axios.post(`${API_BASE_URL}/people/merge`, {source_id: sourceId, target_id: targetId});
         return response.data;
     },
 };
