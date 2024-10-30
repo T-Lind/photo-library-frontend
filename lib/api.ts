@@ -58,6 +58,7 @@ const api = {
 
     getPeople: async (): Promise<Person[]> => {
         const response = await axios.get(`${API_BASE_URL}/people`);
+        console.log("Got people", response.data);
         return response.data;
     },
 
@@ -79,6 +80,10 @@ const api = {
         const response = await axios.post(`${API_BASE_URL}/people/merge`, {source_id: sourceId, target_id: targetId});
         return response.data;
     },
+    deletePerson(personId: number) {
+        axios.delete(`${API_BASE_URL}/people/${personId}`);
+        return;
+    }
 };
 
 export default api;
