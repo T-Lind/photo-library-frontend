@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000/api/v1';
 
 export interface SearchParams {
     query?: string;
@@ -83,6 +83,10 @@ const api = {
     deletePerson(personId: number) {
         axios.delete(`${API_BASE_URL}/people/${personId}`);
         return;
+    },
+    loadDataset: async (data: { folder_path: string }) => {
+        const response = await axios.post(`${API_BASE_URL}/load-dataset`, data);
+        return response.data;
     }
 };
 
